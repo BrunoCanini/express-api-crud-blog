@@ -94,7 +94,7 @@ function store (req, res) {
 
   res.format({
     html: () => {
-      res.redirect();
+      res.type("html").send(res.redirect("/posts/create"));
 
     },
     default: () => {
@@ -124,7 +124,15 @@ function destroy(req, res) {
   // scrivo
   fs.writeFileSync(path.resolve(__dirname, "../db.json"), json);
 
-  res.send("eliminazione avvenuta con successo")
+  res.format({
+    html: () => {
+      res.type("html").send(res.redirect("/posts"));
+
+    },
+    default: () => {
+      res.send("eliminazione avvenuta con successo");
+    },
+  })
 
 }
 
