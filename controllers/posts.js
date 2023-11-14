@@ -1,6 +1,7 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
+const {kebabCase} = require("lodash");
 
 const postsDb = require("../db");
 
@@ -79,11 +80,60 @@ function download (req, res) {
 
   }
 
+function store (req, res) {
+  console.log(req.body);
+
+  postsDb.push({
+    ...req.body,
+    slug: kebabCase(req.body.title)
+  });
+
+  const json = JSON.stringify(postsDb);
+
+  fs.writeFileSync(path.resolve(__dirname, "../db.json"), json);
+
+  res.format({
+    html: () => {
+      res.redirect();
+
+    },
+    default: () => {
+      res.type("json").send(json);
+    },
+  })
+}
+
+function destroy(req, res) {
+
+  const postSlug = req.params.slug
+  const post = postsDb.find(post => post.slug == postSlug)
+
+  if(!post){
+      res.status(404).send("post non trovato");
+  }
+
+  // trovo l indice da eliminare
+  const postIndex = postsDb.findIndex(post => post.slug == req.params.slug);
+
+  // rimuovo l indice
+  postsDb.splice(postIndex, 1);
+
+  // converto
+  const json = JSON.stringify(postsDb);
+
+  // scrivo
+  fs.writeFileSync(path.resolve(__dirname, "../db.json"), json);
+
+  res.send("eliminazione avvenuta con successo")
+
+}
 
 
   module.exports = {
     index,
     show,
     create,
-    download
+    download,
+    store,
+    destroy
   }
